@@ -10,10 +10,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const animatedElements = document.querySelectorAll('[data-animate]');
   const tiltWrapper = document.querySelector('[data-tilt]');
 
-  // 1. 内容依次进场（先触发）
-  requestAnimationFrame(() => {
+  // 1. 内容进场动画 —— 通过 IntersectionObserver 让首屏立即触发，
+  //    折叠以下的 section 进入视口时再触发
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+    animatedElements.forEach(el => observer.observe(el));
+  } else {
+    // Fallback: 立即全部触发
     animatedElements.forEach(el => el.classList.add('animate-in'));
-  });
+  }
 
   // 2. 光束延迟 0.5s 后淡入亮起
   setTimeout(() => {
